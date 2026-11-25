@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.webp" width="128" alt="Mostromancer">
+</p>
+
 # Mostromancer
 
 A web wizard to configure and deploy your own [Mostro](https://github.com/MostroP2P/mostro) node, inspired by the [BTCPay Server Configurator](https://github.com/btcpayserver/btcpayserver-configurator).
