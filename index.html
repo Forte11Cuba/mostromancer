@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mostromancer</title>
+  <meta name="description" content="Configura y despliega tu propio nodo Mostro.">
+  <!-- Nada sale de esta página: sin CDNs, sin analíticas, sin peticiones de red. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file:; style-src 'self' file:; font-src 'self' file:; img-src 'self' file: data: https:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <meta name="theme-color" content="#12161F">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="drawer">
+      <div class="drawer-head">
+        <img class="drawer-logo" src="assets/logo.webp" alt="" width="56" height="56">
+        <span class="wordmark">Mostromancer</span>
+      </div>
+      <div class="accent-divider"></div>
+      <nav aria-label="Pasos">
+        <ol id="stepper" class="menu"></ol>
+      </nav>
+      <div class="drawer-foot">
+        <span class="foot-glyph" aria-hidden="true">●</span>
+        100% local · nada sale de tu navegador
+      </div>
+    </aside>
+
+    <main>
+      <div class="lang-switch" role="group" aria-label="Idioma">
+        <button type="button" data-lang="es" lang="es">ES</button>
+        <button type="button" data-lang="en" lang="en">EN</button>
+      </div>
+      <div class="progress" id="progress" aria-hidden="true"><div id="progress-segments" class="segments"></div></div>
+      <div class="progress-row">
+        <span id="progress-count" class="count">1 / 7</span>
+      </div>
+
+      <form id="wizard" novalidate autocomplete="off">
+
+        <!-- 0. Bienvenida -->
+        <section class="step welcome" data-step="welcome" data-intro>
+          <img class="welcome-logo" src="assets/logo.webp" alt="" width="220" height="220">
+          <h1>Mostromancer</h1>
+          <p class="welcome-tagline">Conjura tu propio nodo Mostro</p>
+          <p class="welcome-text">Seis preguntas y tendrás tu instalador listo.</p>
+        </section>
+
+        <!-- 1. Destino -->
+        <section class="step" data-step="deploy" data-title="Destino">
+          <h2>¿Dónde vivirá tu Mostro?</h2>
+          <p class="lead">Mostromancer genera un script de instalación para un servidor Linux con Docker. Lo descargas, lo revisas y lo ejecutas tú.</p>
+
+          <div class="cards">
+            <label class="card" data-icon="terminal">
+              <input type="radio" name="deployMode" value="script" checked>
+              <span class="card-title">Script de instalación</span>
+              <span class="card-body" data-i18n-html><code>install-mostro.sh</code> para ejecutar en el servidor, o <em>cloud-init</em> para pegar al crear un VPS.</span>
+            </label>
+            <label class="card disabled" data-icon="plug">
+              <input type="radio" name="deployMode" value="ssh" disabled>
+              <span class="card-title">Por SSH <span class="chip soon">Próximamente</span></span>
+              <span class="card-body">Mostromancer se conecta y lo instala por ti.</span>
+            </label>
+            <label class="card disabled" data-icon="reverse">
+              <input type="radio" name="deployMode" value="reverse" disabled>
+              <span class="card-title">Conexión inversa <span class="chip soon">Próximamente</span></span>
+              <span class="card-body">Tu servidor se conecta a Mostromancer sin darle credenciales SSH.</span>
+            </label>
+          </div>
+
+          <div class="grid">
+            <label class="field">
+              <span>Carpeta de instalación</span>
+              <input data-bind="deploy.dir" type="text" spellcheck="false">
+              <small data-i18n-html>Aquí quedan <code>compose.yml</code> y <code>config/</code> (settings, clave, base de datos).</small>
+            </label>
+            <label class="field">
+              <span>Imagen Docker</span>
+              <input data-bind="deploy.image" type="text" spellcheck="false">
+              <small>Publicada por MostroP2P en Docker Hub.</small>
+            </label>
+          </div>
+        </section>
+
+        <!-- 2. Lightning -->
+        <section class="step" data-step="lightning" data-title="Lightning">
+          <h2>¿Cómo se conectará a Lightning?</h2>
+          <p class="lead" data-i18n-html>Mostro custodia los pagos con <em>hold invoices</em> de LND. Conéctalo al tuyo o instala uno nuevo.</p>
+
+          <div class="cards">
+            <label class="card" data-icon="lightning">
+              <input type="radio" data-bind="lightning.mode" name="lnMode" value="existing">
+              <span class="card-title">Ya tengo un nodo LND</span>
+              <span class="card-body">Mostro se conecta a tu LND por gRPC.</span>
+            </label>
+            <label class="card" data-icon="box">
+              <input type="radio" data-bind="lightning.mode" name="lnMode" value="install">
+              <span class="card-title">Instalar mi nodo</span>
+              <span class="card-body">El instalador monta LND y, si quieres, Bitcoin Core y Lightning Terminal.</span>
+            </label>
+            <label class="card disabled" data-icon="coins">
+              <input type="radio" data-bind="lightning.mode" name="lnMode" value="cashu" disabled>
+              <span class="card-title">Solo Cashu, sin LND <span class="chip soon">Próximamente</span></span>
+              <span class="card-body">El escrow se hace con ecash de un mint Cashu en vez de hold invoices. Disponible cuando Mostro lo soporte.</span>
+            </label>
+          </div>
+
+          <fieldset class="field">
+            <legend>Red</legend>
+            <div class="segmented">
+              <label><input type="radio" data-bind="lightning.network" name="lnNetwork" value="mainnet"><span>mainnet</span></label>
+              <label><input type="radio" data-bind="lightning.network" name="lnNetwork" value="testnet"><span>testnet</span></label>
+              <label><input type="radio" data-bind="lightning.network" name="lnNetwork" value="signet"><span>signet</span></label>
+              <label><input type="radio" data-bind="lightning.network" name="lnNetwork" value="regtest"><span>regtest</span></label>
+            </div>
+            <p class="hint" data-show-when="lightning.network=regtest">Regtest es una red local de pruebas: la cadena es solo tuya y tú minas los bloques.</p>
+          </fieldset>
+
+          <!-- Instalar el nodo: tres piezas -->
+          <div data-show-when="lightning.mode=install">
+            <fieldset class="field">
+              <legend>Arma tu nodo</legend>
+              <div class="pieces" role="tablist" aria-label="Piezas del nodo">
+                <button type="button" class="piece" role="tab" data-piece="bitcoind">
+                  <span class="piece-num">1</span>
+                  <span class="layer-logo"><img src="assets/bitcoin.svg" alt=""></span>
+                  <b>Bitcoin Core</b>
+                  <small class="piece-status" id="piece-status-bitcoind"></small>
+                </button>
+                <span class="layer-arrow" aria-hidden="true"></span>
+                <button type="button" class="piece" role="tab" data-piece="lnd">
+                  <span class="piece-num">2</span>
+                  <span class="layer-logo"><img src="assets/lnd.png" alt=""></span>
+                  <b>LND</b>
+                  <small class="piece-status" id="piece-status-lnd"></small>
+                </button>
+                <span class="layer-arrow" aria-hidden="true"></span>
+                <button type="button" class="piece" role="tab" data-piece="litd">
+                  <span class="piece-num">3</span>
+                  <span class="layer-logo"><img src="assets/litd.svg" alt=""></span>
+                  <b>Lightning Terminal</b>
+                  <small class="piece-status" id="piece-status-litd"></small>
+                </button>
+              </div>
+
+              <div class="piece-panel" data-show-when="ui.nodePiece=bitcoind">
+                <label class="switch"><input type="checkbox" data-bind="lightning.backend" data-on="bitcoind" data-off="neutrino"><span>Instalar Bitcoin Core</span></label>
+                <p class="hint" data-show-when="lightning.backend=neutrino" data-i18n-html>Sin Bitcoin Core, LND usa <b>neutrino</b>: lee la cadena de nodos públicos y sincroniza en minutos.</p>
+                <div data-show-when="lightning.backend=bitcoind">
+                  <div class="size-block">
+                    <span class="panel-label">Espacio para la blockchain</span>
+                    <div class="segmented">
+                      <label><input type="radio" data-bind="lightning.prune" name="lnPrune" value="10"><span>10 GB</span></label>
+                      <label><input type="radio" data-bind="lightning.prune" name="lnPrune" value="50"><span>50 GB</span></label>
+                      <label><input type="radio" data-bind="lightning.prune" name="lnPrune" value="custom"><span>Otro tamaño</span></label>
+                      <label><input type="radio" data-bind="lightning.prune" name="lnPrune" value="full"><span>Completo</span></label>
+                    </div>
+                    <label class="field inline-field" data-show-when="lightning.prune=custom">
+                      <span class="unit-input"><input data-bind="lightning.pruneGB" type="number" min="1" step="1"><span class="unit">GB</span></span>
+                    </label>
+                    <p class="hint" data-show-when="lightning.prune=full">Guarda la blockchain entera. Su tamaño crece con el tiempo.</p>
+                    <p class="hint" data-show-when="lightning.prune=10">Podado: guarda solo los bloques más recientes. Suficiente para LND.</p>
+                    <p class="hint" data-show-when="lightning.prune=50">Podado: guarda solo los bloques más recientes. Suficiente para LND.</p>
+                    <p class="hint" data-show-when="lightning.prune=custom">Podado al tamaño que indiques.</p>
+                  </div>
+                  <div class="version-field">
+                    <span class="panel-label">Versión</span>
+                    <select data-bind="lightning.bitcoindVersion" data-versions="bitcoind"></select>
+                    <input data-bind="lightning.bitcoindVersionOther" data-show-when="lightning.bitcoindVersion=other" type="text" spellcheck="false" placeholder="Etiqueta de btcpayserver/bitcoin">
+                  </div>
+                </div>
+              </div>
+
+              <div class="piece-panel" data-show-when="ui.nodePiece=lnd">
+                <p class="hint">LND se instala siempre: es el nodo Lightning con el que Mostro custodia los pagos.</p>
+                <div class="version-field">
+                  <span class="panel-label">Versión</span>
+                  <select data-bind="lightning.lndVersion" data-versions="lnd"></select>
+                  <input data-bind="lightning.lndVersionOther" data-show-when="lightning.lndVersion=other" type="text" spellcheck="false" placeholder="Etiqueta de lightninglabs/lnd">
+                </div>
+              </div>
+
+              <div class="piece-panel" data-show-when="ui.nodePiece=litd">
+                <label class="switch"><input type="checkbox" data-bind="lightning.litd"><span>Instalar Lightning Terminal</span></label>
+                <p class="hint">Interfaz web sobre LND, con Loop y Pool para conseguir liquidez y rebalancear.</p>
+                <div class="version-field" data-show-when="lightning.litd=true">
+                  <span class="panel-label">Versión</span>
+                  <select data-bind="lightning.litdVersion" data-versions="litd"></select>
+                  <input data-bind="lightning.litdVersionOther" data-show-when="lightning.litdVersion=other" type="text" spellcheck="false" placeholder="Etiqueta de lightninglabs/lightning-terminal">
+                </div>
+              </div>
+              <p class="requirements" id="ln-requirements"></p>
+            </fieldset>
+
+
+          </div>
+
+          <!-- Conectar a un LND existente -->
+          <div data-show-when="lightning.mode=existing">
+            <fieldset class="field">
+              <legend>¿Dónde corre LND?</legend>
+              <div class="segmented">
+                <label><input type="radio" data-bind="lightning.location" name="lnLocation" value="local"><span>En este mismo servidor</span></label>
+                <label><input type="radio" data-bind="lightning.location" name="lnLocation" value="remote"><span>En otra máquina</span></label>
+              </div>
+            </fieldset>
+
+            <details id="ln-more" class="more">
+              <summary>Host y archivos de LND <span class="summary-value" id="ln-more-value"></span></summary>
+              <div class="grid">
+                <label class="field wide">
+                  <span>Host gRPC de LND</span>
+                  <input data-bind="lightning.grpcHost" type="text" spellcheck="false" placeholder="https://mi-nodo.ejemplo:10009">
+                </label>
+                <label class="field wide">
+                  <span data-i18n-html>Ruta de <code>tls.cert</code> en el servidor</span>
+                  <input data-bind="lightning.certPath" type="text" spellcheck="false">
+                </label>
+                <label class="field wide">
+                  <span data-i18n-html>Ruta de <code>admin.macaroon</code> en el servidor</span>
+                  <input data-bind="lightning.macaroonPath" type="text" spellcheck="false">
+                  <small data-i18n-html>El script copia ambos archivos a <code>config/lnd/</code> con permisos 600. Si no existen, deja todo listo sin arrancar.</small>
+                </label>
+              </div>
+            </details>
+          </div>
+
+
+        </section>
+
+        <!-- 3. Nostr -->
+        <section class="step" data-step="nostr" data-title="Nostr">
+          <h2>¿Cómo hablará tu Mostro en Nostr?</h2>
+          <p class="lead">Los relays por los que publica y la clave con la que firma.</p>
+
+          <label class="field">
+            <span>Relays <small>uno por línea</small></span>
+            <textarea data-bind="nostr.relays" data-list="lines" rows="4" spellcheck="false"></textarea>
+          </label>
+
+          <fieldset class="field">
+            <legend>Clave privada de Mostro (nsec)</legend>
+            <div class="notice">Es la identidad de tu Mostro: los clientes la conocen por su pubkey. Si la pierdes, pierdes la reputación del nodo; si alguien la copia, puede hacerse pasar por él.</div>
+            <div class="cards">
+              <label class="card" data-icon="deploy">
+                <input type="radio" data-bind="nostr.keyMode" name="keyMode" value="server">
+                <span class="card-title">Generarla en el servidor <span class="chip best">Recomendado</span></span>
+                <span class="card-body">Nace donde va a vivir y nunca pasa por el navegador ni por el script.</span>
+              </label>
+              <label class="card" data-icon="pointer">
+                <input type="radio" data-bind="nostr.keyMode" name="keyMode" value="browser">
+                <span class="card-title">Generarla aquí</span>
+                <span class="card-body">Con el generador aleatorio del navegador y, si quieres, tu movimiento. El script la llevará dentro.</span>
+              </label>
+              <label class="card" data-icon="key">
+                <input type="radio" data-bind="nostr.keyMode" name="keyMode" value="existing">
+                <span class="card-title">Ya tengo una</span>
+                <span class="card-body">Para migrar un Mostro existente sin cambiar de identidad.</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="keypane" data-show-when="nostr.keyMode=browser">
+            <div id="entropy-pad" class="entropy-pad" tabindex="0">
+              <canvas id="entropy-canvas" aria-hidden="true"></canvas>
+              <div class="entropy-label">
+                <strong>Mueve el mouse o el dedo aquí</strong>
+                <span data-i18n-html>La clave sale de <code>crypto.getRandomValues()</code>; tu movimiento se mezcla encima con SHA-256. Nunca la debilita.</span>
+              </div>
+              <div class="entropy-bar"><div id="entropy-fill"></div></div>
+            </div>
+            <div class="key-actions">
+              <button type="button" id="key-generate" class="btn small">Generar sin esperar</button>
+              <button type="button" id="key-clear" class="btn small ghost">Descartar clave</button>
+            </div>
+            <div id="key-result" class="key-result" hidden>
+              <label class="field"><span>npub (pública)</span><input id="key-npub" type="text" readonly></label>
+              <label class="field"><span>nsec (secreta)</span>
+                <span class="with-btn">
+                  <input id="key-nsec" type="password" readonly>
+                  <button type="button" class="btn small ghost" id="key-reveal">Ver</button>
+                </span>
+              </label>
+              <div class="notice">Anota la nsec en un lugar seguro. No se guarda en ningún sitio: si recargas la página, se pierde.</div>
+            </div>
+          </div>
+
+          <div data-show-when="nostr.keyMode=existing">
+            <label class="field">
+              <span>nsec o clave hex</span>
+              <input data-bind="nostr.existingKey" data-secret type="password" spellcheck="false" placeholder="nsec1…">
+              <small id="existing-npub"></small>
+            </label>
+          </div>
+        </section>
+
+        <!-- 4. Identidad -->
+        <section class="step" data-step="identity" data-title="Perfil">
+          <h2>¿Cómo se llamará tu Mostro?</h2>
+          <p class="lead">Lo que ven los usuarios al elegir tu nodo en la app (metadatos NIP-01, kind 0). Todo es opcional.</p>
+          <div class="with-preview">
+            <div class="grid one">
+              <label class="field"><span>Nombre</span><input data-bind="identity.name" type="text" maxlength="80" placeholder="Mostro de mi comunidad"></label>
+              <label class="field"><span>Descripción</span><textarea data-bind="identity.about" rows="3" maxlength="500" placeholder="Intercambio P2P de bitcoin por Lightning, sin KYC."></textarea></label>
+              <label class="field"><span>Imagen (URL)</span><input data-bind="identity.picture" type="url" placeholder="https://…/avatar.png"><small>Cuadrada, idealmente de 128×128 px como máximo.</small></label>
+              <label class="field"><span>Sitio web</span><input data-bind="identity.website" type="url" placeholder="https://…"></label>
+            </div>
+            <div class="preview-col">
+              <div class="preview-label">Así te verán en «Elegir nodo»</div>
+              <div class="node-preview" data-preview></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Negocio -->
+        <section class="step" data-step="business" data-title="Mercado">
+          <h2>¿Cuáles son las reglas de tu mercado?</h2>
+          <p class="lead">Lo que cobras y entre qué montos y monedas se puede operar.</p>
+          <div class="with-preview">
+            <div>
+              <div class="grid">
+                <label class="field">
+                <span>Comisión de tu Mostro</span>
+                <span class="unit-input">
+                  <input data-bind="business.fee" data-unit="ui.feeUnit" type="number" step="any" min="0">
+                  <span class="segmented small">
+                    <label><input type="radio" data-bind="ui.feeUnit" name="feeUnit" value="pct"><span>%</span></label>
+                    <label><input type="radio" data-bind="ui.feeUnit" name="feeUnit" value="ppm"><span>ppm</span></label>
+                  </span>
+                </span>
+                <small><span data-equiv="business.fee" data-equiv-unit="ui.feeUnit"></span> La pagan comprador y vendedor.</small>
+              </label>
+                <span></span>
+                <label class="field"><span>Monto mínimo <small>sats</small></span><input data-bind="business.min_payment_amount" type="number" min="1"></label>
+                <label class="field"><span>Monto máximo por orden <small>sats</small></span><input data-bind="business.max_order_amount" type="number" min="1"></label>
+              </div>
+
+              <fieldset class="field">
+                <legend>Monedas aceptadas</legend>
+                <div id="currency-picker" class="currency-picker"></div>
+              </fieldset>
+
+              <details class="more">
+                <summary>Más opciones</summary>
+                <div class="grid">
+                  <label class="field"><span>Aporte al desarrollo <small>% de tu comisión</small></span><input data-bind="business.dev_fee_percentage" data-scale="100" type="number" step="any" min="10" max="100"><small>Entre 10 % y 100 %. Financia el desarrollo de Mostro.</small></label>
+                  <label class="field">
+                <span>Comisión máxima de ruteo</span>
+                <span class="unit-input">
+                  <input data-bind="business.max_routing_fee" data-unit="ui.routingUnit" type="number" step="any" min="0">
+                  <span class="segmented small">
+                    <label><input type="radio" data-bind="ui.routingUnit" name="routingUnit" value="pct"><span>%</span></label>
+                    <label><input type="radio" data-bind="ui.routingUnit" name="routingUnit" value="ppm"><span>ppm</span></label>
+                  </span>
+                </span>
+                <small><span data-equiv="business.max_routing_fee" data-equiv-unit="ui.routingUnit"></span> Lo que Mostro acepta pagar a la red por cada pago.</small>
+              </label>
+                  <label class="field"><span>Vigencia de una orden <small>horas</small></span><input data-bind="business.expiration_hours" type="number" min="1"></label>
+                  <label class="field"><span>Vigencia máxima <small>días</small></span><input data-bind="business.max_expiration_days" type="number" min="1"></label>
+                  <label class="field"><span>Tiempo para tomar una orden <small>segundos</small></span><input data-bind="business.expiration_seconds" type="number" min="1"></label>
+                  <label class="field"><span>Prueba de trabajo (PoW)</span><input data-bind="business.pow" type="number" min="0" max="255"><small>0 = desactivada. 10–20 si sufres spam.</small></label>
+                </div>
+              </details>
+            </div>
+            <div class="preview-col">
+              <div class="preview-label">Así te verán en «Elegir nodo»</div>
+              <div class="node-preview" data-preview></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Avanzado -->
+        <section class="step" data-step="advanced" data-title="Avanzado">
+          <h2>¿Opciones avanzadas?</h2>
+          <p class="lead">Administración remota, monitoreo y asistente de disputas. Lo recomendado sirve para la mayoría de los nodos.</p>
+
+          <div class="gate" data-show-when="ui.showAdvanced=false">
+            <button type="button" class="btn primary" id="advanced-skip">Continuar con lo recomendado</button>
+            <button type="button" class="btn text" id="advanced-show">Mostrarme las opciones avanzadas</button>
+          </div>
+
+          <div data-show-when="ui.showAdvanced=true">
+          <fieldset class="field panel">
+            <legend>Pagos y escrow</legend>
+            <p class="hint">Cuánto esperan los pagos y qué márgenes deja el escrow. Los valores por defecto son los de Mostro.</p>
+            <div class="grid">
+            <label class="field"><span>hold_invoice_cltv_delta <small>bloques</small></span><input data-bind="lightning.hold_invoice_cltv_delta" type="number" min="1"></label>
+            <label class="field"><span>escrow_deadline_margin_blocks</span><input data-bind="lightning.escrow_deadline_margin_blocks" type="number" min="18"></label>
+            <label class="field"><span>hold_invoice_expiration_window <small>s</small></span><input data-bind="lightning.hold_invoice_expiration_window" type="number" min="1"></label>
+            <label class="field"><span>invoice_expiration_window <small>s</small></span><input data-bind="lightning.invoice_expiration_window" type="number" min="1"></label>
+            <label class="field"><span>payment_attempts</span><input data-bind="lightning.payment_attempts" type="number" min="0"></label>
+            <label class="field"><span>payment_retries_interval <small>s</small></span><input data-bind="lightning.payment_retries_interval" type="number" min="0"></label>
+            <label class="field"><span>max_final_cltv_expiry_delta</span><input data-bind="lightning.max_final_cltv_expiry_delta" type="number" min="1"></label>
+            <label class="field"><span>payment_cltv_limit <small>0 = el de LND</small></span><input data-bind="lightning.payment_cltv_limit" type="number" min="0"></label>
+            <label class="field"><span>max_inflight_payouts</span><input data-bind="lightning.max_inflight_payouts" type="number" min="0"></label>
+            <label class="field"><span>max_inflight_payouts_per_destination</span><input data-bind="lightning.max_inflight_payouts_per_destination" type="number" min="0"></label>
+            </div>
+            <p class="hint" data-i18n-html>Los valores por defecto son los del <code>settings.tpl.toml</code> de Mostro. Si cambiaste <code>invoices.holdexpirydelta</code> en LND, <code>escrow_deadline_margin_blocks</code> debe superarlo en al menos 6.</p>
+          </fieldset>
+
+          <fieldset class="field panel">
+            <legend>RPC de administración</legend>
+            <label class="switch"><input data-bind="advanced.rpcEnabled" type="checkbox"><span>Activar la interfaz gRPC (cancelar órdenes, resolver disputas, gestionar solvers)</span></label>
+            <div class="grid" data-show-when="advanced.rpcEnabled=true">
+              <label class="field"><span>Puerto</span><input data-bind="advanced.rpcPort" type="number" min="1" max="65535"></label>
+              <label class="field"><span>&nbsp;</span><label class="switch"><input data-bind="advanced.rpcToken" type="checkbox"><span>Exigir un token (se genera en el servidor)</span></label></label>
+            </div>
+            <p class="hint" data-show-when="advanced.rpcEnabled=true">Solo escucha en 127.0.0.1 del servidor. Para administrarlo de forma remota, usa un túnel SSH.</p>
+          </fieldset>
+
+          <fieldset class="field panel">
+            <legend>Salud del nodo</legend>
+            <label class="switch"><input data-bind="advanced.healthEnabled" type="checkbox"><span>Publicar el evento de salud (kind 38389)</span></label>
+            <div class="grid" data-show-when="advanced.healthEnabled=true">
+              <label class="field"><span>Intervalo <small>s, 30–3600</small></span><input data-bind="advanced.healthInterval" type="number" min="30" max="3600"></label>
+              <label class="field"><span>Pubkey del watchdog <small>opcional</small></span><input data-bind="advanced.watchdogPubkey" type="text" spellcheck="false" placeholder="npub1…"></label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span>Pubkey de Serbero <small>asistente de disputas, opcional</small></span>
+            <input data-bind="advanced.serberoPubkey" type="text" spellcheck="false" placeholder="npub1…">
+          </label>
+          </div>
+        </section>
+
+        <!-- 7. Resumen -->
+        <section class="step" data-step="summary" data-title="Abracadabra">
+          <div id="review">
+            <h2>¿Se ve bien?</h2>
+            <p class="lead">Revisa tu configuración antes de generar el instalador.</p>
+            <div class="review-preview">
+              <div class="preview-label">Así te verán en «Elegir nodo»</div>
+              <div class="node-preview" data-preview></div>
+            </div>
+            <div id="issues"></div>
+            <div id="review-table" class="review"></div>
+            <div class="gate">
+              <button type="button" class="btn primary" id="generate">Generar instalador</button>
+            </div>
+          </div>
+
+          <div id="outputs" hidden>
+            <h2>¡Abracadabra! Tu instalador está listo</h2>
+            <p class="lead">Sigue estos pasos para instalarlo en tu servidor.</p>
+            <div class="tabs" role="tablist">
+              <button type="button" role="tab" data-out="install">install-mostro.sh</button>
+              <button type="button" role="tab" data-out="cloudinit">cloud-init</button>
+              <button type="button" role="tab" data-out="settings">settings.toml</button>
+              <button type="button" role="tab" data-out="compose">compose.yml</button>
+            </div>
+            <div class="out-actions">
+              <button type="button" class="btn small" id="out-download">Descargar</button>
+              <button type="button" class="btn small ghost" id="out-copy">Copiar</button>
+              <span id="out-status" role="status"></span>
+            </div>
+            <div id="out-help"></div>
+            <details class="more">
+              <summary>Ver el contenido del archivo</summary>
+              <pre id="out-text" tabindex="0"></pre>
+            </details>
+            <div class="gate">
+              <button type="button" class="btn text" id="back-review">Volver al resumen</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn primary" id="next">Siguiente</button>
+          <button type="button" class="btn text" id="prev">Atrás</button>
+        </div>
+      </form>
+
+      <footer>
+        Generador para <a href="https://github.com/MostroP2P/mostro">Mostro</a>
+        · <button type="button" id="reset" class="linkish">Empezar de cero</button>
+      </footer>
+    </main>
+  </div>
+
+  <script src="js/template.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/i18n-en.js"></script>
+  <script src="js/versions.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/currencies.js"></script>
+  <script src="js/toml.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/generate.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
