@@ -66,7 +66,13 @@
         payment_cltv_limit: 1008
       },
       nostr: {
-        relays: ["wss://relay.mostro.network", "wss://nos.lol", "wss://relay.damus.io"],
+        relays: [
+          "wss://relay.mostro.network",
+          "wss://mostro-p2p.tech",
+          "wss://relay.shadowbip.com",
+          "wss://nos.lol",
+          "wss://relay.damus.io"
+        ],
         keyMode: "server",
         existingKey: "",
         browserKey: null
