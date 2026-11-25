@@ -164,15 +164,3 @@ Installing the node was tested by hand in isolated Docker (docker-in-docker) wit
 ## License
 
 GPL-3.0-or-later, like [Mostro](https://github.com/MostroP2P/mostro). See [LICENSE](LICENSE).
-
-### Third-party assets
-
-| Asset | Source | License |
-|---|---|---|
-| Outfit, Manrope fonts | [MostroP2P/app](https://github.com/MostroP2P/app) | SIL Open Font License (`fonts/OFL-*.txt`) |
-| NotoFlags font | [MostroP2P/app](https://github.com/MostroP2P/app) (Noto Color Emoji flags) | `fonts/LICENSE-NotoFlags.txt` |
-| LND logo (`assets/lnd.png`) | [btcpayserver-configurator](https://github.com/btcpayserver/btcpayserver-configurator) | Trademark of Lightning Labs; used to identify the software |
-| Lightning Terminal logo (`assets/litd.svg`) | [lightninglabs/lightning-terminal](https://github.com/lightninglabs/lightning-terminal) | MIT; trademark of Lightning Labs |
-| Bitcoin logo (`assets/bitcoin.svg`) | [btcpayserver-configurator](https://github.com/btcpayserver/btcpayserver-configurator) | Public domain |
-| Currency list (`js/currencies.js`) | [Yadio](https://api.yadio.io/currencies), flags from MostroP2P/app | Data |
-| `js/template.js` | Mostro's [`settings.tpl.toml`](https://github.com/MostroP2P/mostro/blob/main/settings.tpl.toml) | GPL-3.0-or-later (Mostro) |
